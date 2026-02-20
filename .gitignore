@@ -1,2 +1,26 @@
-.venv
-app/__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Database
+*.db
+*.sqlite3
+
+# Environment Variables
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker logs
+*.log
+
+# Alembic
+alembic/__pycache__/
