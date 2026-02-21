@@ -1,15 +1,47 @@
 from fastapi import FastAPI
+from fastapi import status
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from app.core.config import settings
 from app.core.database import engine
+from app.core.logger import logger
 
 
 from app.api import auth_api
 
 app = FastAPI()
 app.include_router(auth_api.router)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.warning(f"Validation Error: {exc.errors()} - URL: {request.url}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "success": False,
+            "message": "Data Validation Error",
+            "detail": exc.errors(),
+            "code": "VALIDATION_ERROR"
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Kritik Hata: {str(exc)} - URL: {request.url}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "success": False, 
+            "message": "Unexpected Server Error",
+            "detail": str(exc),
+            "code": "INTERNAL_SERVER_ERROR"
+        },
+    )
+
 
 @app.get("/health")
 def health_check():
@@ -27,15 +59,6 @@ def startup_event():
         connection.close()
     except Exception as e:
         print(f"❌ DB bağlantı hatası: {e}")
-
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    print(f"Hata oluştu: {str(exc)}")
-    return JSONResponse(
-        status_code=500,
-        content={"message": "Sunucu tarafında bir hata oluştu.", "detail": str(exc)},
-    )
 
 
 def get_system_info():
