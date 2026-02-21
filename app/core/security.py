@@ -1,19 +1,22 @@
 import hmac
 import hashlib
-from passlib.context import CryptContext
-from app.core.config import settings 
+import bcrypt
+from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-def _get_peppered_password(password: str) -> str:
-    return hmac.new(
-        settings.SECRET_KEY.encode(), 
-        password.encode(), 
+def _get_peppered_password(password: str) -> bytes:
+    digest = hmac.new(
+        settings.SECRET_KEY.encode(),
+        password.encode(),
         hashlib.sha256
-    ).hexdigest()
+    ).digest()
+    return digest
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(_get_peppered_password(password))
+    peppered = _get_peppered_password(password)
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(peppered, salt)
+    return hashed.decode('utf-8')
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(_get_peppered_password(plain_password), hashed_password)
+    peppered = _get_peppered_password(plain_password)
+    return bcrypt.checkpw(peppered, hashed_password.encode('utf-8'))
