@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.repositories.user_repo import UserRepository
 from app.schemas.user_sh import UserCreate, UserLogin
 from app.models.user import User
+from app.core.logger import logger
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException, status
 
@@ -25,6 +26,8 @@ class UserService:
             email=user_data.email,
             hashed_password=hashed_pwd
         )
+        
+        logger.info(f"New User Succesfully Registered: {new_user.email}")
 
         return self.user_repo.create(new_user)
 
