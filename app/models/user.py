@@ -3,12 +3,13 @@ import enum
 from sqlalchemy import Column, String, Boolean, DateTime, Enum, func
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
+from app.models.base import TimestampModel
 
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     USER = "user"
 
-class User(Base):
+class User(Base,TimestampModel):
 
     __tablename__ = "tblusers"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -24,5 +25,4 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.USER, nullable=False)
     is_active = Column(Boolean, default=True)
     
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
