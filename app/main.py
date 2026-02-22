@@ -11,7 +11,16 @@ from app.core.logger import logger
 
 from app.api import auth_api
 
-app = FastAPI()
+app = FastAPI(
+    title="OpenAuth Service 🔐",
+    description="""
+    Enterprise-grade, secure and scalable Authentication Service.
+    
+    * **Auth**: Registration, Login and Token management.
+    * **Users**: User profile management.
+    """,
+    version="1.0.0"
+)
 app.include_router(auth_api.router)
 
 

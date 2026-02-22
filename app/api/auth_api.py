@@ -9,12 +9,15 @@ from app.models.user import User
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+@router.post("/register",
+            summary="Register New User",
+            response_model=UserOut,
+            status_code=status.HTTP_201_CREATED)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     service = UserService(db)
     return service.register_user(user_data)
 
-@router.post("/login")
+@router.post("/login",summary="User Login")
 def login(login_data: UserLogin, db: Session = Depends(get_db)):
     service = UserService(db)
     user = service.authenticate_user(login_data)
@@ -24,6 +27,8 @@ def login(login_data: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me", response_model=UserOut)
+@router.get("/me",
+            summary="Get Current User Profile",
+            response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
