@@ -26,17 +26,29 @@ app.include_router(auth_api.router)
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    raw_body = exc.body
+    safe_body = ""
+    
+    if isinstance(raw_body, bytes):
+        try:
+            safe_body = raw_body.decode("utf-8")
+        except:
+            safe_body = str(raw_body)
+    else:
+        safe_body = str(raw_body)
+
     logger.warning(f"Validation Error: {exc.errors()} - URL: {request.url}")
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "success": False,
-            "message": "Data Validation Error",
+            "message": "Data validation failed.",
             "detail": exc.errors(),
+            "body_received": safe_body, 
             "code": "VALIDATION_ERROR"
         },
     )
-
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
