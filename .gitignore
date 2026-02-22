@@ -24,3 +24,9 @@ ENV/
 
 # Alembic
 alembic/__pycache__/
+
+
+# App Testing
+.coverage
+htmlcov/
+.pytest_cache/
