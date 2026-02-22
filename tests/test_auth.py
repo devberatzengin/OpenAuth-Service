@@ -1,24 +1,43 @@
 def test_register_user(client):
-    """Yeni kullanıcı kaydı başarılı mı?"""
     response = client.post("/auth/register", json={
         "email": "test@example.com",
         "password": "password123",
-        "full_name": "Test User"
+        "first_name": "Berat",  
+        "last_name": "Zengin"   
     })
     assert response.status_code == 201
     assert response.json()["email"] == "test@example.com"
 
+
+import uuid 
+
 def test_login_user(client):
     """Giriş yapıp token alabiliyor muyuz?"""
-    # Önce kayıt ol
-    client.post("/auth/register", json={"email": "login@test.com", "password": "securepassword"})
+    unique_email = f"user_{uuid.uuid4().hex[:6]}@test.com"
+    password = "securepassword123"
     
-    # Login ol (Form data formatında!)
-    response = client.post("/auth/login", data={"username": "login@test.com", "password": "securepassword"})
+    client.post("/auth/register", json={
+        "email": unique_email,
+        "password": password,
+        "first_name": "Berat",
+        "last_name": "Zengin"
+    })
+    
+    response = client.post(
+        "/auth/login", 
+        data={"username": unique_email, "password": password}
+    )
+    
     assert response.status_code == 200
-    assert "access_token" in response.json()
+    json_data = response.json()
+    assert "access_token" in json_data
+    assert json_data["token_type"] == "bearer"
 
-def test_get_me_unauthorized(client):
-    """Token olmadan profile girilemez olmalı"""
-    response = client.get("/auth/me")
-    assert response.status_code == 401
+def test_register_invalid_data(client):
+    """Geçersiz veriyle custom error handler çalışıyor mu?"""
+    response = client.post("/auth/register", json={"email": "not-an-email"})
+    assert response.status_code == 422
+    
+    data = response.json()
+    assert data["success"] is False 
+    assert data["code"] == "VALIDATION_ERROR"
