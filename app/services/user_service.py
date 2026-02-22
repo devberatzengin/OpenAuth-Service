@@ -3,7 +3,7 @@ from app.repositories.user_repo import UserRepository
 from app.schemas.user_sh import UserCreate, UserLogin
 from app.models.user import User
 from app.core.logger import logger
-from app.core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password, create_access_token
 from fastapi import HTTPException, status
 
 class UserService:
@@ -31,16 +31,18 @@ class UserService:
 
         return self.user_repo.create(new_user)
 
-    def authenticate_user(self, login_data: UserLogin):
+    def authenticate_user(self, email: str, password: str):
 
-        user = self.user_repo.get_by_email(login_data.email)
-        if not user:
+        user = self.user_repo.get_by_email(email)
+        if not user or not verify_password(password, user.hashed_password):
             return None
         
-        if not verify_password(login_data.password, user.hashed_password):
-            return None
-            
-        return user
+        access_token = create_access_token(data={"sub": str(user.id)})
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
     
     def authenticate_user_by_form(self, email: str, password: str):
         user = self.user_repo.get_by_email(email) 
