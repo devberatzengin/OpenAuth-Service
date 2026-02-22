@@ -41,3 +41,9 @@ class UserService:
             return None
             
         return user
+    
+    def authenticate_user_by_form(self, email: str, password: str):
+        user = self.user_repo.get_by_email(email) 
+        if not user or not verify_password(password, user.hashed_password):
+            return None
+        return user
